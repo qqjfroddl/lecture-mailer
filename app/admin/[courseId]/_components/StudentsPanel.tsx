@@ -145,10 +145,10 @@ export default function StudentsPanel({
     <section className="bg-white rounded-xl p-6">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-brand/80">
+          <h2 className="text-base font-semibold text-brand/80">
             등록된 학습자 ({students.length}명)
           </h2>
-          <p className="text-xs text-brand/50 mt-0.5">
+          <p className="text-sm text-brand/50 mt-0.5">
             {autoRefresh ? "5초마다 자동 새로고침" : "자동 새로고침 꺼짐"}
           </p>
         </div>
@@ -156,11 +156,11 @@ export default function StudentsPanel({
           <button
             type="button"
             onClick={() => setBulkOpen((v) => !v)}
-            className="text-xs text-brand-accent hover:underline"
+            className="text-sm text-brand-accent hover:underline"
           >
             {bulkOpen ? "▲ 일괄 등록 닫기" : "▼ 이메일 텍스트로 일괄 등록"}
           </button>
-          <label className="text-xs text-brand/70 flex items-center gap-2 cursor-pointer">
+          <label className="text-sm text-brand/70 flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               checked={autoRefresh}
@@ -173,7 +173,7 @@ export default function StudentsPanel({
 
       {bulkOpen && (
         <div className="mb-4 bg-brand-surface rounded-lg p-4 space-y-3">
-          <p className="text-xs text-brand/70">
+          <p className="text-sm text-brand/70">
             아래 칸에 이메일이 포함된 텍스트를 그대로 붙여넣으세요. 형식 상관없이 이메일 주소만 자동으로 추출합니다.
           </p>
           <textarea
@@ -181,9 +181,9 @@ export default function StudentsPanel({
             onChange={(e) => setBulkText(e.target.value)}
             rows={6}
             placeholder="예) 홍길동 hong@example.com, 김영희 yh@company.co.kr&#10;또는 한 줄에 하나씩"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-brand/15 bg-white font-mono"
+            className="w-full px-3 py-2 text-base rounded-lg border border-brand/15 bg-white font-mono"
           />
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-sm">
             <span className="text-brand/70">
               발견된 이메일 <strong className="text-brand">{extractedEmails.length}개</strong>
               {extractedEmails.length > 0 && (
@@ -198,19 +198,19 @@ export default function StudentsPanel({
               type="button"
               onClick={submitBulk}
               disabled={bulkSubmitting || extractedEmails.length === 0}
-              className="px-4 py-2 rounded-lg bg-brand text-white text-xs font-medium hover:bg-brand-accent transition disabled:opacity-40"
+              className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-accent transition disabled:opacity-40"
             >
               {bulkSubmitting ? "추가 중…" : `${extractedEmails.length}개 추가`}
             </button>
           </div>
           {bulkResult && (
-            <p className="text-xs text-brand">{bulkResult}</p>
+            <p className="text-sm text-brand">{bulkResult}</p>
           )}
         </div>
       )}
 
       {students.length === 0 ? (
-        <p className="text-sm text-brand/50 text-center py-6">
+        <p className="text-base text-brand/50 text-center py-6">
           아직 등록한 학습자가 없습니다.
         </p>
       ) : (
@@ -219,7 +219,7 @@ export default function StudentsPanel({
             <button
               type="button"
               onClick={toggleAll}
-              className="text-xs text-brand/60 hover:text-brand-accent"
+              className="text-sm text-brand/60 hover:text-brand-accent"
             >
               {selected.size === students.length ? "전체 해제" : "전체 선택"}
             </button>
@@ -228,13 +228,13 @@ export default function StudentsPanel({
                 type="button"
                 onClick={deleteSelected}
                 disabled={deleting}
-                className="px-3 py-1.5 rounded-md bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition disabled:opacity-40"
+                className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-40"
               >
                 {deleting ? "삭제 중…" : `선택 ${selected.size}명 삭제`}
               </button>
             )}
           </div>
-          <ul className="text-sm text-brand divide-y divide-brand/10 border border-brand/10 rounded-lg">
+          <ul className="text-base text-brand divide-y divide-brand/10 border border-brand/10 rounded-lg">
             {students.map((s) => (
               <li key={s.id}>
                 <label className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-brand-surface">
@@ -244,7 +244,7 @@ export default function StudentsPanel({
                     onChange={() => toggle(s.id)}
                   />
                   <span className="font-mono flex-1">{s.email}</span>
-                  <span className="text-xs text-brand/50">
+                  <span className="text-sm text-brand/50">
                     {formatTime(s.registeredAt)}
                   </span>
                 </label>

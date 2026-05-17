@@ -8,12 +8,12 @@ export default function Home() {
         <h1 className="text-2xl font-bold text-brand">
           강의 메일 자동화
         </h1>
-        <p className="mt-2 text-sm text-brand/70">
+        <p className="mt-2 text-base text-brand/70">
           박재현 소장 전용 운영 도구
         </p>
         <Link
           href="/admin"
-          className="inline-block mt-8 px-6 py-3 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-accent transition"
+          className="inline-block mt-8 px-6 py-3 rounded-lg bg-brand text-white text-base font-medium hover:bg-brand-accent transition"
         >
           관리자 들어가기
         </Link>

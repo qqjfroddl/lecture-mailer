@@ -26,7 +26,7 @@ export default async function CourseDetailPage({
     return (
       <div className="text-center py-20">
         <p className="text-brand/70">존재하지 않는 교육과정입니다.</p>
-        <Link href="/admin" className="text-brand-accent text-sm underline mt-2 inline-block">
+        <Link href="/admin" className="text-brand-accent text-base underline mt-2 inline-block">
           목록으로
         </Link>
       </div>
@@ -45,17 +45,17 @@ export default async function CourseDetailPage({
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/admin" className="text-sm text-brand/60 hover:text-brand">
+        <Link href="/admin" className="text-base text-brand/60 hover:text-brand">
           ← 목록
         </Link>
         <div className="mt-2 flex items-baseline justify-between gap-4 flex-wrap">
           <div>
-            <p className="text-xs text-brand/60">{course.date} · {course.duration}</p>
+            <p className="text-sm text-brand/60">{course.date} · {course.duration}</p>
             <h1 className="text-2xl font-bold text-brand mt-1">
               {course.company} · {course.courseName}
             </h1>
             {course.audience && (
-              <p className="text-sm text-brand/70 mt-1">{course.audience}</p>
+              <p className="text-base text-brand/70 mt-1">{course.audience}</p>
             )}
           </div>
           <DeleteCourseButton
@@ -68,7 +68,7 @@ export default async function CourseDetailPage({
 
       {/* QR + 공유 링크 */}
       <section className="bg-white rounded-xl p-6">
-        <h2 className="text-sm font-semibold text-brand/80 mb-4">
+        <h2 className="text-base font-semibold text-brand/80 mb-4">
           학습자 공유용 QR · 링크
         </h2>
         <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -82,14 +82,14 @@ export default async function CourseDetailPage({
           </div>
           <div className="flex-1 space-y-3">
             <ShareLink url={shareUrl} />
-            <p className="text-xs text-brand/60">
+            <p className="text-sm text-brand/60">
               학습자가 이 QR을 스캔하거나 위 링크에 접속하면 이메일을 등록합니다.
             </p>
             <a
               href={course.notionUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-brand-accent underline break-all"
+              className="text-sm text-brand-accent underline break-all"
             >
               노션 자료 링크 확인 ↗
             </a>

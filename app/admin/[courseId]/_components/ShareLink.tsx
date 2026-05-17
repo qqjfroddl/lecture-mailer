@@ -22,12 +22,12 @@ export default function ShareLink({ url }: { url: string }) {
         readOnly
         value={url}
         onClick={(e) => (e.target as HTMLInputElement).select()}
-        className="flex-1 px-3 py-2 text-sm rounded-lg border border-brand/15 bg-brand-surface text-brand"
+        className="flex-1 px-3 py-2 text-base rounded-lg border border-brand/15 bg-brand-surface text-brand"
       />
       <button
         type="button"
         onClick={copy}
-        className="px-4 py-2 text-sm rounded-lg bg-brand text-white hover:bg-brand-accent transition"
+        className="px-4 py-2 text-base rounded-lg bg-brand text-white hover:bg-brand-accent transition"
       >
         {copied ? "복사됨" : "복사"}
       </button>

@@ -58,12 +58,12 @@ function LoginForm() {
           className="w-full px-4 py-3 rounded-lg border border-brand/20 bg-white focus:outline-none focus:border-brand-accent"
         />
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-base text-red-600">{error}</p>
         )}
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-4 py-3 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-accent transition disabled:opacity-50"
+          className="w-full px-4 py-3 rounded-lg bg-brand text-white text-base font-medium hover:bg-brand-accent transition disabled:opacity-50"
         >
           {loading ? "확인 중…" : "로그인"}
         </button>

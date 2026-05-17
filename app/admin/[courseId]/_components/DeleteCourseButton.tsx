@@ -1,4 +1,4 @@
-// 교육과정 삭제 버튼 — 확인 다이얼로그 + cascade 삭제
+// 교육과정 삭제 버튼 — 명확하게 보이는 빨간 버튼
 "use client";
 
 import { useState } from "react";
@@ -49,8 +49,13 @@ export default function DeleteCourseButton({
       type="button"
       onClick={onDelete}
       disabled={deleting}
-      className="text-xs text-red-600 hover:text-red-700 hover:underline disabled:opacity-50"
+      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-medium transition disabled:opacity-50"
     >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M3 6h18" />
+        <path d="M19 6l-1.5 14a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 6" />
+        <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+      </svg>
       {deleting ? "삭제 중…" : "과정 삭제"}
     </button>
   );

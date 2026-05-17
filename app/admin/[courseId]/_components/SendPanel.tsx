@@ -132,7 +132,7 @@ export default function SendPanel({
   return (
     <section className="bg-white rounded-xl p-6 space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-brand/80">메일 발송</h2>
+        <h2 className="text-base font-semibold text-brand/80">메일 발송</h2>
         <div className="flex gap-1 bg-brand-surface rounded-lg p-1">
           <TabButton active={kind === "kickoff"} onClick={() => setKind("kickoff")}>
             교육자료 (시작)
@@ -146,24 +146,24 @@ export default function SendPanel({
       {/* 템플릿 편집 */}
       <div className="space-y-3">
         <div>
-          <label className="text-xs font-medium text-brand/70 block mb-1">
+          <label className="text-sm font-medium text-brand/70 block mb-1">
             제목
           </label>
           <input
             value={draft.subject}
             onChange={(e) => setDraft({ ...draft, subject: e.target.value })}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-brand/15 bg-white"
+            className="w-full px-3 py-2 text-base rounded-lg border border-brand/15 bg-white"
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-brand/70 block mb-1">
+          <label className="text-sm font-medium text-brand/70 block mb-1">
             본문
           </label>
           <textarea
             value={draft.body}
             onChange={(e) => setDraft({ ...draft, body: e.target.value })}
             rows={12}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-brand/15 bg-white font-mono leading-relaxed"
+            className="w-full px-3 py-2 text-base rounded-lg border border-brand/15 bg-white font-mono leading-relaxed"
           />
         </div>
       </div>
@@ -171,25 +171,25 @@ export default function SendPanel({
       {/* 수신자 선택 */}
       <div className="border-t border-brand/10 pt-4">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-brand/70">
+          <p className="text-sm font-medium text-brand/70">
             수신자 ({students.length}명)
           </p>
           {students.length > 0 && (
             <button
               type="button"
               onClick={toggleAll}
-              className="text-xs text-brand-accent hover:underline"
+              className="text-sm text-brand-accent hover:underline"
             >
               {selected.size === students.length ? "전체 해제" : "전체 선택"}
             </button>
           )}
         </div>
         {students.length === 0 ? (
-          <p className="text-xs text-brand/50 py-3">
+          <p className="text-sm text-brand/50 py-3">
             등록된 학습자가 없습니다. 학습자가 QR로 등록하면 여기에 표시됩니다.
           </p>
         ) : (
-          <ul className="max-h-48 overflow-y-auto text-sm divide-y divide-brand/10 border border-brand/10 rounded-lg">
+          <ul className="max-h-48 overflow-y-auto text-base divide-y divide-brand/10 border border-brand/10 rounded-lg">
             {students.map((s) => (
               <li key={s.id}>
                 <label className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-brand-surface">
@@ -212,7 +212,7 @@ export default function SendPanel({
           type="button"
           onClick={() => send("all")}
           disabled={sending || students.length === 0}
-          className="px-4 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-accent transition disabled:opacity-50"
+          className="px-4 py-2.5 rounded-lg bg-brand text-white text-base font-medium hover:bg-brand-accent transition disabled:opacity-50"
         >
           {sending ? "발송 중…" : `전체 ${students.length}명에게 발송`}
         </button>
@@ -220,27 +220,27 @@ export default function SendPanel({
           type="button"
           onClick={() => send("selected")}
           disabled={sending || selected.size === 0}
-          className="px-4 py-2.5 rounded-lg border border-brand text-brand text-sm font-medium hover:bg-brand-surface transition disabled:opacity-30"
+          className="px-4 py-2.5 rounded-lg border border-brand text-brand text-base font-medium hover:bg-brand-surface transition disabled:opacity-30"
         >
           선택한 {selected.size}명에게 발송
         </button>
       </div>
 
       {result && (
-        <div className="text-sm bg-brand-surface text-brand rounded-lg px-4 py-3">
+        <div className="text-base bg-brand-surface text-brand rounded-lg px-4 py-3">
           {result}
         </div>
       )}
 
       {/* 발송 이력 */}
       <div className="border-t border-brand/10 pt-4">
-        <p className="text-xs font-medium text-brand/70 mb-2">
+        <p className="text-sm font-medium text-brand/70 mb-2">
           발송 이력 ({logs.length}건)
         </p>
         {logs.length === 0 ? (
-          <p className="text-xs text-brand/50">아직 발송 이력이 없습니다.</p>
+          <p className="text-sm text-brand/50">아직 발송 이력이 없습니다.</p>
         ) : (
-          <ul className="max-h-48 overflow-y-auto text-xs divide-y divide-brand/10">
+          <ul className="max-h-48 overflow-y-auto text-sm divide-y divide-brand/10">
             {logs
               .slice()
               .reverse()
@@ -281,7 +281,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={
-        "px-3 py-1.5 text-xs rounded-md font-medium transition " +
+        "px-3 py-1.5 text-sm rounded-md font-medium transition " +
         (active ? "bg-brand text-white" : "text-brand/70 hover:text-brand")
       }
     >

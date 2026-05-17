@@ -1,6 +1,7 @@
 // 관리자 홈 — 교육과정 목록
 import Link from "next/link";
 import { listCourses } from "@/lib/sheets";
+import CourseListItem from "./_components/CourseListItem";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function AdminHome() {
         <h1 className="text-2xl font-bold text-brand">교육과정</h1>
         <Link
           href="/admin/new"
-          className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-accent transition"
+          className="px-4 py-2 rounded-lg bg-brand text-white text-base font-medium hover:bg-brand-accent transition"
         >
           + 새 과정
         </Link>
@@ -26,25 +27,7 @@ export default async function AdminHome() {
       ) : (
         <ul className="space-y-2">
           {courses.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={`/admin/${c.id}`}
-                className="block bg-white rounded-xl p-5 hover:shadow transition"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-brand/60">{c.date}</div>
-                    <div className="font-semibold text-brand mt-1">
-                      {c.company} · {c.courseName}
-                    </div>
-                    <div className="text-sm text-brand/70 mt-1">
-                      {c.audience} · {c.duration}
-                    </div>
-                  </div>
-                  <span className="text-brand/40">›</span>
-                </div>
-              </Link>
-            </li>
+            <CourseListItem key={c.id} course={c} />
           ))}
         </ul>
       )}

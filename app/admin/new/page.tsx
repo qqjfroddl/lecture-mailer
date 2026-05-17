@@ -49,7 +49,7 @@ export default function NewCoursePage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin" className="text-sm text-brand/60 hover:text-brand">
+        <Link href="/admin" className="text-base text-brand/60 hover:text-brand">
           ← 목록
         </Link>
       </div>
@@ -113,13 +113,13 @@ export default function NewCoursePage() {
           />
         </Field>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-base text-red-600">{error}</p>}
 
         <div className="pt-2">
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-3 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-accent transition disabled:opacity-50"
+            className="px-5 py-3 rounded-lg bg-brand text-white text-base font-medium hover:bg-brand-accent transition disabled:opacity-50"
           >
             {loading ? "생성 중…" : "교육과정 생성"}
           </button>
@@ -152,7 +152,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <div className="text-sm font-medium text-brand/80 mb-1.5">
+      <div className="text-base font-medium text-brand/80 mb-1.5">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </div>
