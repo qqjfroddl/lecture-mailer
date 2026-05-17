@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Korean semantic line breaks — apply globally */
+* {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-break: strict;
+}
+
+html, body {
+  background: #F2F1EF;
+  color: #2E3142;
+  letter-spacing: -0.02em;
+}
+
+body {
+  font-family: 'Pretendard', 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.7;
+}
+
+a {
+  color: inherit;
+}
+
+input, textarea, select, button {
+  font-family: inherit;
+  letter-spacing: inherit;
+}
+
+/* Print-friendly QR */
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+}
