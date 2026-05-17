@@ -181,6 +181,66 @@ export async function addStudent(
   return student;
 }
 
+const cachedSheetIds: Record<string, number> = {};
+
+async function getTabSheetId(title: string): Promise<number> {
+  if (title in cachedSheetIds) return cachedSheetIds[title];
+  const res = await client().spreadsheets.get({
+    spreadsheetId: sheetId(),
+    includeGridData: false,
+  });
+  const sheet = res.data.sheets?.find(
+    (sh) => sh.properties?.title === title,
+  );
+  const id = sheet?.properties?.sheetId;
+  if (id === null || id === undefined) {
+    throw new Error(`${title} 시트를 찾을 수 없습니다.`);
+  }
+  cachedSheetIds[title] = id;
+  return id;
+}
+
+async function getStudentsSheetId(): Promise<number> {
+  return getTabSheetId("students");
+}
+
+// 학습자 다건 삭제 - 행 자체를 제거 (id 일치 기준)
+export async function deleteStudents(
+  studentIds: string[],
+): Promise<number> {
+  if (studentIds.length === 0) return 0;
+  const res = await client().spreadsheets.values.get({
+    spreadsheetId: sheetId(),
+    range: STUDENTS_RANGE,
+  });
+  const rows = res.data.values ?? [];
+  const idSet = new Set(studentIds);
+  // rows[0] = 헤더, rows[i] = 시트 i행(0-indexed)
+  const rowIndices: number[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    if (idSet.has(rows[i][0])) rowIndices.push(i);
+  }
+  if (rowIndices.length === 0) return 0;
+  // 아래 행부터 삭제 (인덱스 밀림 방지)
+  rowIndices.sort((a, b) => b - a);
+  const studentsSheetId = await getStudentsSheetId();
+  const requests = rowIndices.map((rowIdx) => ({
+    deleteDimension: {
+      range: {
+        sheetId: studentsSheetId,
+        dimension: "ROWS" as const,
+        startIndex: rowIdx,
+        endIndex: rowIdx + 1,
+      },
+    },
+  }));
+  await client().spreadsheets.batchUpdate({
+    spreadsheetId: sheetId(),
+    requestBody: { requests },
+  });
+  return rowIndices.length;
+}
+
 // ---------- send_logs ----------
 
 export async function logSend(args: {
@@ -229,4 +289,96 @@ export async function listSendLogs(courseId: string): Promise<SendLog[]> {
       status: (row[5] as "ok" | "error") ?? "ok",
       error: row[6] ?? "",
     }));
+}
+
+
+// ---------- course delete (cascade) ----------
+
+// 과정 + 관련 학습자 + 관련 발송 로그 모두 삭제
+export async function deleteCourse(courseId: string): Promise<{
+  courseDeleted: boolean;
+  studentsDeleted: number;
+  logsDeleted: number;
+}> {
+  // 1) 관련 행 인덱스 모두 조회
+  const [coursesRes, studentsRes, logsRes] = await Promise.all([
+    client().spreadsheets.values.get({
+      spreadsheetId: sheetId(),
+      range: COURSES_RANGE,
+    }),
+    client().spreadsheets.values.get({
+      spreadsheetId: sheetId(),
+      range: STUDENTS_RANGE,
+    }),
+    client().spreadsheets.values.get({
+      spreadsheetId: sheetId(),
+      range: LOGS_RANGE,
+    }),
+  ]);
+
+  const courseRows = coursesRes.data.values ?? [];
+  const studentRows = studentsRes.data.values ?? [];
+  const logRows = logsRes.data.values ?? [];
+
+  const findCourseIdx = (rows: string[][], idColIdx: number) => {
+    const indices: number[] = [];
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][idColIdx] === courseId) indices.push(i);
+    }
+    return indices;
+  };
+
+  // courses 는 첫 컬럼이 course id, students/send_logs 는 두번째 컬럼이 course_id
+  const courseIndices = findCourseIdx(courseRows, 0);
+  const studentIndices = findCourseIdx(studentRows, 1);
+  const logIndices = findCourseIdx(logRows, 1);
+
+  if (
+    courseIndices.length === 0 &&
+    studentIndices.length === 0 &&
+    logIndices.length === 0
+  ) {
+    return { courseDeleted: false, studentsDeleted: 0, logsDeleted: 0 };
+  }
+
+  const [coursesSheetId, studentsSheetId, logsSheetId] = await Promise.all([
+    getTabSheetId("courses"),
+    getTabSheetId("students"),
+    getTabSheetId("send_logs"),
+  ]);
+
+  // 각 시트별로 행 인덱스를 descending 정렬해 삭제 요청 생성
+  const buildRequests = (indices: number[], sheetIdNum: number) =>
+    indices
+      .slice()
+      .sort((a, b) => b - a)
+      .map((rowIdx) => ({
+        deleteDimension: {
+          range: {
+            sheetId: sheetIdNum,
+            dimension: "ROWS" as const,
+            startIndex: rowIdx,
+            endIndex: rowIdx + 1,
+          },
+        },
+      }));
+
+  const requests = [
+    ...buildRequests(courseIndices, coursesSheetId),
+    ...buildRequests(studentIndices, studentsSheetId),
+    ...buildRequests(logIndices, logsSheetId),
+  ];
+
+  if (requests.length > 0) {
+    await client().spreadsheets.batchUpdate({
+      spreadsheetId: sheetId(),
+      requestBody: { requests },
+    });
+  }
+
+  return {
+    courseDeleted: courseIndices.length > 0,
+    studentsDeleted: studentIndices.length,
+    logsDeleted: logIndices.length,
+  };
 }

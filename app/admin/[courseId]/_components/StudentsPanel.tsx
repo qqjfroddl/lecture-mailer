@@ -1,4 +1,4 @@
-// 학습자 목록 — 5초마다 polling + 이메일 텍스트 일괄 등록
+// 학습자 목록 — 5초마다 polling + 이메일 텍스트 일괄 등록 + 선택 삭제
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -22,9 +22,12 @@ export default function StudentsPanel({
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkResult, setBulkResult] = useState<string | null>(null);
 
+  // 선택 삭제 상태
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
   const extractedEmails = useMemo(() => {
     const matches = bulkText.match(EMAIL_REGEX) ?? [];
-    // 소문자로 통일해 중복 제거
     const seen = new Set<string>();
     const list: string[] = [];
     for (const m of matches) {
@@ -37,22 +40,79 @@ export default function StudentsPanel({
     return list;
   }, [bulkText]);
 
+  async function fetchStudents() {
+    try {
+      const res = await fetch(`/api/students?courseId=${courseId}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setStudents(data.students ?? []);
+    } catch {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     if (!autoRefresh) return;
-    const t = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/students?courseId=${courseId}`, {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        setStudents(data.students ?? []);
-      } catch {
-        // ignore
-      }
-    }, 5000);
+    const t = setInterval(fetchStudents, 5000);
     return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, autoRefresh]);
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selected.size === students.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(students.map((s) => s.id)));
+    }
+  }
+
+  async function deleteSelected() {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    const sample = students
+      .filter((s) => selected.has(s.id))
+      .slice(0, 3)
+      .map((s) => s.email)
+      .join(", ");
+    const more = selected.size > 3 ? ` 외 ${selected.size - 3}명` : "";
+    if (
+      !window.confirm(
+        `선택된 ${selected.size}명을 삭제할까요?\n\n${sample}${more}\n\n삭제하면 시트에서 행이 완전히 제거됩니다.`,
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/students/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentIds: ids }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(`삭제 실패: ${data.error ?? ""}`);
+        return;
+      }
+      setSelected(new Set());
+      await fetchStudents();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "오류");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function submitBulk() {
     if (extractedEmails.length === 0) return;
@@ -73,12 +133,7 @@ export default function StudentsPanel({
         `완료 — 새로 추가 ${data.added}건, 이미 등록됨 ${data.skipped}건${data.errors?.length ? `, 실패 ${data.errors.length}건` : ""}`,
       );
       setBulkText("");
-      // 즉시 목록 새로고침
-      const refreshed = await fetch(`/api/students?courseId=${courseId}`, { cache: "no-store" });
-      if (refreshed.ok) {
-        const d = await refreshed.json();
-        setStudents(d.students ?? []);
-      }
+      await fetchStudents();
     } catch (err) {
       setBulkResult(err instanceof Error ? err.message : "오류");
     } finally {
@@ -159,16 +214,44 @@ export default function StudentsPanel({
           아직 등록한 학습자가 없습니다.
         </p>
       ) : (
-        <ul className="text-sm text-brand divide-y divide-brand/10">
-          {students.map((s) => (
-            <li key={s.id} className="py-2 flex items-center justify-between">
-              <span className="font-mono">{s.email}</span>
-              <span className="text-xs text-brand/50">
-                {formatTime(s.registeredAt)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              onClick={toggleAll}
+              className="text-xs text-brand/60 hover:text-brand-accent"
+            >
+              {selected.size === students.length ? "전체 해제" : "전체 선택"}
+            </button>
+            {selected.size > 0 && (
+              <button
+                type="button"
+                onClick={deleteSelected}
+                disabled={deleting}
+                className="px-3 py-1.5 rounded-md bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition disabled:opacity-40"
+              >
+                {deleting ? "삭제 중…" : `선택 ${selected.size}명 삭제`}
+              </button>
+            )}
+          </div>
+          <ul className="text-sm text-brand divide-y divide-brand/10 border border-brand/10 rounded-lg">
+            {students.map((s) => (
+              <li key={s.id}>
+                <label className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-brand-surface">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(s.id)}
+                    onChange={() => toggle(s.id)}
+                  />
+                  <span className="font-mono flex-1">{s.email}</span>
+                  <span className="text-xs text-brand/50">
+                    {formatTime(s.registeredAt)}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

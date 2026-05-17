@@ -10,6 +10,7 @@ import { env } from "@/lib/env";
 import ShareLink from "./_components/ShareLink";
 import StudentsPanel from "./_components/StudentsPanel";
 import SendPanel from "./_components/SendPanel";
+import DeleteCourseButton from "./_components/DeleteCourseButton";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,11 @@ export default async function CourseDetailPage({
               <p className="text-sm text-brand/70 mt-1">{course.audience}</p>
             )}
           </div>
+          <DeleteCourseButton
+            courseId={course.id}
+            courseName={`${course.company} · ${course.courseName}`}
+            studentsCount={students.length}
+          />
         </div>
       </div>
 
