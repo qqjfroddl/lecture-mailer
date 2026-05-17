@@ -99,6 +99,7 @@ export default async function CourseDetailPage({
         courseId={course.id}
         kickoff={kickoffTpl}
         review={reviewTpl}
+        initialStudents={students}
         initialLogs={logs}
       />
     </div>

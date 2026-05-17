@@ -9,6 +9,7 @@ type Props = {
   courseId: string;
   kickoff: TemplateDraft;
   review: TemplateDraft;
+  initialStudents: Student[];
   initialLogs: SendLog[];
 };
 
@@ -16,11 +17,12 @@ export default function SendPanel({
   courseId,
   kickoff,
   review,
+  initialStudents,
   initialLogs,
 }: Props) {
   const [kind, setKind] = useState<SendKind>("kickoff");
   const [draft, setDraft] = useState<TemplateDraft>(kickoff);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<Student[]>(initialStudents);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -31,17 +33,24 @@ export default function SendPanel({
     setResult(null);
   }, [kind, kickoff, review]);
 
+  // 5초마다 학습자 polling — StudentsPanel 과 동기화
   useEffect(() => {
-    fetchStudents();
-  }, []);
+    const t = setInterval(fetchStudents, 5000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId]);
 
   async function fetchStudents() {
-    const res = await fetch(`/api/students?courseId=${courseId}`, {
-      cache: "no-store",
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setStudents(data.students ?? []);
+    try {
+      const res = await fetch(`/api/students?courseId=${courseId}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStudents(data.students ?? []);
+      }
+    } catch {
+      // ignore
     }
   }
 

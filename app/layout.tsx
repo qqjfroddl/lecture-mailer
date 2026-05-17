@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "lecture-mailer · 강의 메일 자동화",
-  description: "박재현 소장 강의 운영 자동화 도구",
+  title: "lecture-mailer · 강의 자료 공유 받기",
+  description: "이메일을 입력하면 강의 자료를 받으실 수 있어요.",
 };
 
 export default function RootLayout({
