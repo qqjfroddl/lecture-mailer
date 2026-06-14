@@ -25,6 +25,7 @@ export default function StudentsPanel({
   // 선택 삭제 상태
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [copyDone, setCopyDone] = useState<"none" | "all" | "selected">("none");
 
   const extractedEmails = useMemo(() => {
     const matches = bulkText.match(EMAIL_REGEX) ?? [];
@@ -55,7 +56,7 @@ export default function StudentsPanel({
 
   useEffect(() => {
     if (!autoRefresh) return;
-    const t = setInterval(fetchStudents, 5000);
+    const t = setInterval(fetchStudents, 15000);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, autoRefresh]);
@@ -74,6 +75,20 @@ export default function StudentsPanel({
       setSelected(new Set());
     } else {
       setSelected(new Set(students.map((s) => s.id)));
+    }
+  }
+
+  async function copyEmails(scope: "all" | "selected") {
+    const list = scope === "all" ? students : students.filter((s) => selected.has(s.id));
+    if (list.length === 0) return;
+    const text = list.map((s) => s.email).join(", ");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyDone(scope);
+      setTimeout(() => setCopyDone("none"), 1500);
+    } catch {
+      // clipboard 거부된 경우 prompt 로 노출
+      window.prompt(`${list.length}개 이메일 — Ctrl+C 로 복사하세요`, text);
     }
   }
 
@@ -149,7 +164,7 @@ export default function StudentsPanel({
             등록된 학습자 ({students.length}명)
           </h2>
           <p className="text-sm text-brand/50 mt-0.5">
-            {autoRefresh ? "5초마다 자동 새로고침" : "자동 새로고침 꺼짐"}
+            {autoRefresh ? "15초마다 자동 새로고침" : "자동 새로고침 꺼짐"}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -215,15 +230,36 @@ export default function StudentsPanel({
         </p>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-2">
-            <button
-              type="button"
-              onClick={toggleAll}
-              className="text-sm text-brand/60 hover:text-brand-accent"
-            >
-              {selected.size === students.length ? "전체 해제" : "전체 선택"}
-            </button>
-            {selected.size > 0 && (
+          <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleAll}
+                className="text-sm text-brand/60 hover:text-brand-accent"
+              >
+                {selected.size === students.length ? "전체 해제" : "전체 선택"}
+              </button>
+              <button
+                type="button"
+                onClick={() => copyEmails("all")}
+                className="text-sm text-brand-accent hover:underline"
+                title="등록된 모든 이메일을 콤마로 구분해 클립보드에 복사"
+              >
+                {copyDone === "all" ? "✓ 복사됨" : `전체 ${students.length}개 이메일 복사`}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {selected.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => copyEmails("selected")}
+                  className="px-3 py-1.5 rounded-md border border-brand/20 text-brand text-sm font-medium hover:bg-brand-surface transition"
+                  title="선택한 이메일만 복사"
+                >
+                  {copyDone === "selected" ? "✓ 복사됨" : `선택 ${selected.size}개 복사`}
+                </button>
+              )}
+              {selected.size > 0 && (
               <button
                 type="button"
                 onClick={deleteSelected}
@@ -232,7 +268,8 @@ export default function StudentsPanel({
               >
                 {deleting ? "삭제 중…" : `선택 ${selected.size}명 삭제`}
               </button>
-            )}
+              )}
+            </div>
           </div>
           <ul className="text-base text-brand divide-y divide-brand/10 border border-brand/10 rounded-lg">
             {students.map((s) => (

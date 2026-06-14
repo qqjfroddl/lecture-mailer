@@ -1,7 +1,24 @@
-// 이메일 입력 → /api/register 호출 → 성공 화면
+// 학습자 이메일 등록 폼 — 동시 접속 대비 1회 자동 재시도
 "use client";
 
 import { useState } from "react";
+
+async function tryRegister(courseId: string, email: string): Promise<{ ok: true } | { ok: false; error: string; retryable: boolean }> {
+  try {
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ courseId, email }),
+    });
+    if (res.ok) return { ok: true };
+    const data = await res.json().catch(() => ({}));
+    // 429 / 500 / 503 은 재시도 가치 있음
+    const retryable = res.status === 429 || res.status >= 500;
+    return { ok: false, error: data.error ?? `요청 실패 (${res.status})`, retryable };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "네트워크 오류", retryable: true };
+  }
+}
 
 export default function RegisterForm({ courseId }: { courseId: string }) {
   const [email, setEmail] = useState("");
@@ -13,23 +30,25 @@ export default function RegisterForm({ courseId }: { courseId: string }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId, email }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "등록 실패");
-        return;
-      }
-      setDone(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
+
+    // 1차 시도
+    let result = await tryRegister(courseId, email);
+    // 실패 + 재시도 가치 있으면 0.8초 대기 후 1회 더
+    if (!result.ok && result.retryable) {
+      await new Promise((r) => setTimeout(r, 800));
+      result = await tryRegister(courseId, email);
     }
+
+    if (result.ok) {
+      setDone(true);
+    } else {
+      setError(
+        result.retryable
+          ? "지금 등록자가 몰려서 잠시 지연되고 있어요. 10초 뒤 다시 한 번 눌러주세요."
+          : result.error,
+      );
+    }
+    setLoading(false);
   }
 
   if (done) {

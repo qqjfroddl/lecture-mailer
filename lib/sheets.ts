@@ -127,6 +127,69 @@ export async function createCourse(input: {
   return course;
 }
 
+// 과정 정보 수정 — id 로 행을 찾아 값을 덮어쓴다
+export async function updateCourse(
+  courseId: string,
+  patch: {
+    date?: string;
+    company?: string;
+    courseName?: string;
+    audience?: string;
+    duration?: string;
+    notionUrl?: string;
+  },
+): Promise<Course | null> {
+  const res = await client().spreadsheets.values.get({
+    spreadsheetId: sheetId(),
+    range: COURSES_RANGE,
+  });
+  const rows = res.data.values ?? [];
+  // 헤더 제외, 시트 0-indexed 행 번호와 함께
+  let targetRowIndex = -1;
+  let existing: Course | null = null;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === courseId) {
+      targetRowIndex = i;
+      existing = rowToCourse(rows[i]);
+      break;
+    }
+  }
+  if (!existing || targetRowIndex < 0) return null;
+
+  const updated: Course = {
+    ...existing,
+    date: patch.date ?? existing.date,
+    company: patch.company ?? existing.company,
+    courseName: patch.courseName ?? existing.courseName,
+    audience: patch.audience ?? existing.audience,
+    duration: patch.duration ?? existing.duration,
+    notionUrl: patch.notionUrl ?? existing.notionUrl,
+  };
+
+  // 1-indexed 시트 행 번호 (헤더가 1행이므로 targetRowIndex 0 = 1행, 1 = 2행)
+  const sheetRow = targetRowIndex + 1;
+  await client().spreadsheets.values.update({
+    spreadsheetId: sheetId(),
+    range: `courses!A${sheetRow}:H${sheetRow}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [
+        [
+          updated.id,
+          updated.createdAt,
+          updated.date,
+          updated.company,
+          updated.courseName,
+          updated.audience,
+          updated.duration,
+          updated.notionUrl,
+        ],
+      ],
+    },
+  });
+  return updated;
+}
+
 // ---------- students ----------
 
 function rowToStudent(row: string[]): Student {
@@ -145,23 +208,28 @@ export async function listStudents(courseId: string): Promise<Student[]> {
   });
   const rows = res.data.values ?? [];
   if (rows.length <= 1) return [];
-  return rows
+  const all = rows
     .slice(1)
     .filter((r) => r[0] && r[1] === courseId)
     .map(rowToStudent);
+  // 출력 단계에서 같은 이메일 중복 제거 (가장 처음 등록 우선)
+  const seen = new Set<string>();
+  const unique: Student[] = [];
+  for (const s of all) {
+    const key = s.email.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(s);
+  }
+  return unique;
 }
 
 export async function addStudent(
   courseId: string,
   email: string,
 ): Promise<Student> {
-  // 중복 등록 무시 (이미 등록된 이메일이면 기존 레코드 반환)
-  const existing = await listStudents(courseId);
-  const dup = existing.find(
-    (s) => s.email.toLowerCase() === email.toLowerCase(),
-  );
-  if (dup) return dup;
-
+  // 동시 등록 경쟁 상태 회피를 위해 사전 중복 체크 없이 그냥 append.
+  // 중복은 listStudents 출력 단계에서 제거.
   const student: Student = {
     id: newStudentId(),
     courseId,

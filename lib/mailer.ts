@@ -49,7 +49,7 @@ export async function sendBulk(
   build: (email: string) => { subject: string; text: string },
   opts?: { delayMs?: number },
 ): Promise<BulkResult[]> {
-  const delay = opts?.delayMs ?? 800;
+  const delay = opts?.delayMs ?? 100;
   const results: BulkResult[] = [];
   for (const email of recipients) {
     try {

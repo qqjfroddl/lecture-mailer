@@ -33,9 +33,9 @@ export default function SendPanel({
     setResult(null);
   }, [kind, kickoff, review]);
 
-  // 5초마다 학습자 polling — StudentsPanel 과 동기화
+  // 15초마다 학습자 polling — StudentsPanel 과 동기화
   useEffect(() => {
-    const t = setInterval(fetchStudents, 5000);
+    const t = setInterval(fetchStudents, 15000);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
